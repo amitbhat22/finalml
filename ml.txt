@@ -1,0 +1,849 @@
+FIND-S
+# Implementation Find-S
+# Step-1  : Initiliaze h with most specific hypothesis in H
+#           h will reject every instance
+
+h=['phi','phi','phi','phi','phi','phi']   # 'phi' indicate no value is accepted. 'any' indicates every value is accepted.
+
+
+# Training Data
+Data=[['Sunny','Warm','Normal','Strong','Warm','Same','Yes'],
+      ['Sunny','Warm','High','Strong','Warm','Same','Yes'],
+      ['Sunny','Warm','Normal','Strong','Warm','Same','No'],
+      ['Sunny','Warm','High','Strong','Cool','Change','Yes']
+     ]
+
+# Step-2 : Iterate over training data and replace constraints in hypothesis with more general constraints
+
+
+'''
+Function: isConsistent(hypothesis,data)
+        This function check whether given hypothesis is consitent with given data instance.
+        It compare each attribute's value in hypothesis with respective attribute's value in data.
+'''
+def isConsistent(h,d):
+    # Check number of attribute is hypothesis is one less than number of attribute in data.
+    # Since one attribute in data is class attribute which is not considered in hypothesis.
+   
+    if len(h)!=len(d)-1:
+        print('Number of attributes are not same in hypothesis.')
+        return False
+    else:
+       
+        # variable 'matched keeps number of attributes which are consistent in hypothesis.
+       
+        matched=0        
+       
+        # Iterate over each attribute in hypothesis
+       
+        for i in range(len(h)):
+           
+            # Check if attribute in hypothesis is equal to repsective attribute's value in data instance or
+            # it has 'any' value.
+           
+            if ( (h[i]==d[i]) | (h[i]=='any') ):
+               
+                # if condition is satisfied then increase matched
+               
+                matched=matched+1
+       
+        # Return true if for all attribute's value in data, hypothesis is consistent.
+       
+        if matched==len(h):
+            return True
+        else:
+            return False
+
+       
+'''
+Function: makeConsistent(hypothesis,data)
+        This function change hypothesis to make it consistent with given data instance.
+'''
+def makeConsistent(h,d):
+   
+    # Iterate over each attribute in hypothesis
+   
+    for i in range(len(h)):
+       
+        # if ith attribute in hypothesis reject each value. 'phi' indicates that each value is rejected.
+       
+        if((h[i] == 'phi')):
+           
+            # Replace ith value in hypothesis with data instance's ith attribute value.
+            h[i]=d[i]
+           
+           
+            # if hypothesis ith value is not 'phi' and it is also not equal to ith value in data instance.
+           
+        elif(h[i]!=d[i]):
+           
+            # Replace ith value in hypothesis with 'any'. 'any' accept each value for that attribute.
+            h[i]='any'
+   
+    # Return updated hypothesis
+    return h
+
+
+
+print('Begin : Hypothesis :',h)
+print('==========================================')
+# Iterate over each data instance in given training data
+
+for d in Data:
+   
+    # Consider only positive instance ( instance with 'Yes' class)
+   
+    if d[len(d)-1]=='Yes':
+       
+        # Check whether hypothesis is consistent with current data instance
+       
+        if ( isConsistent(h,d)):
+           
+            # Print hypothesis
+           
+            print ("Hypothesis :",d)
+        else:
+           
+            # If hypothesis is not consistent then make it consistent with current data instance
+           
+            h=makeConsistent(h,d)
+   
+       
+        # Print current data instance and updated hypothesis
+        print ('Training data         :',d)
+        print ('Updated Hypothesis    :',h)
+        print()
+        print('--------------------------------')
+print('==========================================')
+print('End: Hypothesis :',h)
+
+
+Candidate
+
+import csv
+
+with open("enjoysport.csv") as f:
+    csv_file=csv.reader(f)
+    data=list(csv_file)
+    for i in data:
+        if i[-1]=="Yes":
+            s=i[:-1]
+            break
+    print(s)
+
+    g=[['?' for i in range(len(s))] for j in range(len(s))]
+    
+    for i in data:
+        if i[-1]=="Yes":
+            for j in range(len(s)):
+                if i[j]!=s[j]:
+                    s[j]='?'
+                    g[j][j]='?'
+        
+        elif i[-1]=="No":
+            for j in range(len(s)):
+                if i[j]!=s[j]:
+                    g[j][j]=s[j]
+                else:
+                    g[j][j]="?"
+        print("\nSteps of Candidate Elimination Algorithm",data.index(i)+1)
+        print(s)
+        print(g)
+    gh=[]
+    for i in g:
+        for j in i:
+            if j!='?':
+                gh.append(i)
+                break
+    print("\nFinal specific hypothesis:\n",s)
+
+    print("\nFinal general hypothesis:\n",gh)
+
+
+
+
+K-means
+import numpy as np
+import pandas as pd
+from copy import deepcopy
+
+
+def euclidean(a,b, ax=1):
+    return np.linalg.norm(a-b, axis=ax)
+
+
+def main():
+    k = 3
+    X = pd.read_csv('kmeans.csv',index_col=False)
+    print(X)
+
+    x1 = X['X1'].values
+    x2 = X['X2'].values
+    X = np.array(list(zip(x1, x2)))
+    print(X)
+    C_x = [6.2, 6.6 ,6.5]
+    C_y = [3.2, 3.7, 3.0]
+    Centroid = np.array(list(zip(C_x, C_y)), dtype=np.float32)
+    print("Initial Centroids")
+    print(Centroid.shape)
+
+    Centroid_old = np.zeros(Centroid.shape)
+    print(Centroid_old)
+    # Cluster Lables(0, 1, 2)
+    clusters = np.zeros(len(X))
+    print(clusters)
+    error = euclidean(Centroid, Centroid_old, None)
+    print(error)
+    iterr = 0
+    # Loop will run till the error becomes zero
+    while error != 0:
+        # Assigning each value to its closest cluster
+        iterr = iterr + 1
+        for i in range(len(X)):
+            #print(X[i])
+            distances = euclidean(X[i], Centroid)
+            #print(distances)
+            cluster = np.argmin(distances)
+            clusters[i] = cluster
+
+        Centroid_old = deepcopy(Centroid)
+        
+        # Finding the new centroids by taking the Mean
+        for p in range(k):
+            points = [X[j] for j in range(len(X)) if clusters[j] == p]
+            Centroid[p] = np.mean(points, axis=0)
+        print(" Centre of the clusters after ", iterr," Iteration \n", Centroid)
+        error = euclidean(Centroid, Centroid_old, None)
+        print("Error  ... ",error)  
+    
+
+if __name__ == "__main__": 
+    main()
+
+
+Decision tree
+from sklearn.tree import DecisionTreeClassifier
+import pandas as pd
+import numpy as np
+from sklearn import metrics
+from sklearn.metrics import confusion_matrix
+from sklearn.tree import export_graphviz
+import graphviz
+from sklearn import tree
+ 
+###########################################################################################################
+##########################################################################################################
+"""
+Import the Zoo Dataset
+"""
+#Import the dataset 
+dataset = pd.read_csv('zoo_data.csv')
+#We drop the animal names since this is not a good feature to split the data on
+#dataset=dataset.drop('animal_name',axis=1)
+###########################################################################################################
+##########################################################################################################
+"""
+Split the data into a training and a testing set
+"""
+train_features = dataset.iloc[:80,:-1]
+test_features = dataset.iloc[80:,:-1]
+train_targets = dataset.iloc[:80,-1]
+test_targets = dataset.iloc[80:,-1]
+###########################################################################################################
+##########################################################################################################
+"""
+Train the model
+"""
+tree1 = DecisionTreeClassifier(criterion = 'entropy').fit(train_features,train_targets)
+export_graphviz(tree1, out_file="mytree.dot")
+with open("mytree.dot") as f:
+    dot_graph = f.read()
+graphviz.Source(dot_graph)
+tree.plot_tree(tree1)
+###########################################################################################################
+##########################################################################################################
+"""
+Predict the classes of new, unseen data
+"""
+prediction = tree1.predict(test_features)
+cm = confusion_matrix(test_targets, prediction)
+print('\n'.join([''.join(['{:4}'.format(item) for item in row]) for row in cm]))
+#confusionmatrix = np.matrix(cm)
+FP = cm.sum(axis=0) - np.diag(cm)
+FN = cm.sum(axis=1) - np.diag(cm)
+TP = np.diag(cm)
+TN = cm.sum() - (FP + FN + TP)
+print('False Positives\n {}'.format(FP))
+print('False Negetives\n {}'.format(FN))
+print('True Positives\n {}'.format(TP))
+print('True Negetives\n {}'.format(TN))
+TPR = TP/(TP+FN)
+print('Sensitivity \n {}'.format(TPR))
+TNR = TN/(TN+FP)
+print('Specificity \n {}'.format(TNR))
+Precision = TP/(TP+FP)
+print('Precision \n {}'.format(Precision))
+Recall = TP/(TP+FN)
+print('Recall \n {}'.format(Recall))
+Acc = (TP+TN)/(TP+TN+FP+FN)
+print('Áccuracy \n{}'.format(Acc))
+Fscore = 2*((Precision*Recall)/(Precision+Recall))
+print('FScore \n{}'.format(Fscore))
+###########################################################################################################
+##########################################################################################################
+
+
+Linear Regression
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt 
+  
+def estimate_coef(x, y): 
+    # number of observations/points 
+    n = np.size(x) 
+  
+    # mean of x and y vector 
+    m_x, m_y = np.mean(x), np.mean(y) 
+  
+    # calculating cross-deviation and deviation about x 
+    SS_xy = np.sum(y*x) - n*m_y*m_x 
+    SS_xx = np.sum(x*x) - n*m_x*m_x 
+  
+    # calculating regression coefficients 
+    b_1 = SS_xy / SS_xx 
+    b_0 = m_y - b_1*m_x 
+  
+    return(b_0, b_1) 
+  
+def plot_regression_line(x, y, b): 
+    # plotting the actual points as scatter plot 
+    plt.scatter(x, y, color = "m", 
+               marker = "o", s = 30) 
+  
+    # predicted response vector 
+    y_pred = b[0] + b[1]*x 
+  
+    # plotting the regression line 
+    plt.plot(x, y_pred, color = "g") 
+  
+    # putting labels 
+    plt.xlabel('x') 
+    plt.ylabel('y') 
+  
+    # function to show plot 
+    plt.show() 
+    
+def main(): 
+    # observations
+    dataset = pd.read_csv('Food-Truck-LineReg.csv')
+
+    x = dataset.iloc[:97,0]
+    x = np.array(x)
+    y = dataset.iloc[:97,1]
+    y=np.array(y)
+     
+  
+    # estimating coefficients 
+    b = estimate_coef(x, y) 
+    print("Estimated coefficients: b_0 = {} b_1 = {}".format(b[0], b[1])) 
+  
+    # plotting regression line 
+    plot_regression_line(x, y, b) 
+    
+if __name__ == "__main__": 
+    main() 
+
+
+
+Logistic 
+
+with library
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+
+from sklearn import metrics
+from sklearn.metrics import confusion_matrix
+data = pd.read_csv('heart.csv')
+x=data.drop('target',axis=1)
+y=data.target
+x_train,x_test,y_train,y_test = train_test_split(x,y,test_size=0.3,random_state=109)
+# Training the Logistic Regression model on the Training set
+from sklearn.linear_model import LogisticRegression
+classifier = LogisticRegression(random_state = 0)
+classifier.fit(x_train, y_train)
+y_pred=classifier.predict(x_test)
+cm = confusion_matrix(y_test,y_pred)
+print(cm)
+fp=cm.sum(axis=0)-np.diag(cm)
+fn=cm.sum(axis=1)-np.diag(cm)
+tp=np.diag(cm)
+tn=cm.sum()-(fp+fn+tp)
+print("false positives:{}".format(fp))
+print("false negatives:{}".format(fn))
+print("true positives:{}".format(tp))
+print("true negatives:{}".format(tn))
+tnr = tn/(tn+fp)
+print("tnr:{}".format(tnr))
+tpr = tp/(tp+fn)
+print("tpr:{}".format(tpr))
+acc = (tp+tn)/(tp+tn+fp+fn)
+print("acc: {}".format(acc))
+recall = (tp/(tp+fp))
+print("recall:{}".format(recall))
+precision = (tp/(tp+fn))
+print("precision:{}".format(precision))
+Fscore = 2*(precision*recall)/(precision+recall)
+print("Fscore: {}".format(Fscore))
+
+
+without library
+
+# Logistic Regression on Diabetes Dataset
+from random import seed
+from random import randrange
+from csv import reader
+from math import exp
+ 
+# Load a CSV file
+def load_csv(filename):
+	dataset = list()
+	with open(filename, 'r') as file:
+		csv_reader = reader(file)
+		for row in csv_reader:
+			if not row:
+				continue
+			dataset.append(row)
+	return dataset
+ 
+# Convert string column to float
+def str_column_to_float(dataset, column):
+	for row in dataset:
+		row[column] = float(row[column].strip())
+ 
+# Find the min and max values for each column
+def dataset_minmax(dataset):
+	minmax = list()
+	for i in range(len(dataset[0])):
+		col_values = [row[i] for row in dataset]
+		value_min = min(col_values)
+		value_max = max(col_values)
+		minmax.append([value_min, value_max])
+	return minmax
+ 
+# Rescale dataset columns to the range 0-1
+def normalize_dataset(dataset, minmax):
+	for row in dataset:
+		for i in range(len(row)):
+			row[i] = (row[i] - minmax[i][0]) / (minmax[i][1] - minmax[i][0])
+ 
+# Split a dataset into k folds
+def cross_validation_split(dataset, n_folds):
+	dataset_split = list()
+	dataset_copy = list(dataset)
+	fold_size = int(len(dataset) / n_folds)
+	for i in range(n_folds):
+		fold = list()
+		while len(fold) < fold_size:
+			index = randrange(len(dataset_copy))
+			fold.append(dataset_copy.pop(index))
+		dataset_split.append(fold)
+	return dataset_split
+ 
+# Calculate accuracy percentage
+def accuracy_metric(actual, predicted):
+	correct = 0
+	for i in range(len(actual)):
+		if actual[i] == predicted[i]:
+			correct += 1
+	return correct / float(len(actual)) * 100.0
+ 
+# Evaluate an algorithm using a cross validation split
+def evaluate_algorithm(dataset, algorithm, n_folds, *args):
+	folds = cross_validation_split(dataset, n_folds)
+	scores = list()
+	for fold in folds:
+		train_set = list(folds)
+		train_set.remove(fold)
+		train_set = sum(train_set, [])
+		test_set = list()
+		for row in fold:
+			row_copy = list(row)
+			test_set.append(row_copy)
+			row_copy[-1] = None
+		predicted = algorithm(train_set, test_set, *args)
+		actual = [row[-1] for row in fold]
+		accuracy = accuracy_metric(actual, predicted)
+		scores.append(accuracy)
+	print(scores)
+	return scores
+
+def sigmoid(yhat):
+        value = 1.0 / (1.0 + exp(-yhat))
+        return value
+ 
+# Make a prediction with coefficients
+def predict(row, coefficients):
+	yhat = coefficients[0]
+	for i in range(len(row)-1):
+		yhat += coefficients[i + 1] * row[i]
+		value = sigmoid(yhat)
+	return value
+ 
+# Estimate logistic regression coefficients using stochastic gradient descent
+def coefficients_sgd(train, l_rate, n_epoch):
+	coef = [0.0 for i in range(len(train[0]))]
+	for epoch in range(n_epoch):
+		for row in train:
+			yhat = predict(row, coef)
+			error = row[-1] - yhat
+			coef[0] = coef[0] + l_rate * error * yhat * (1.0 - yhat)
+			for i in range(len(row)-1):
+				coef[i + 1] = coef[i + 1] + l_rate * error * yhat * (1.0 - yhat) * row[i]
+	return coef
+ 
+# Linear Regression Algorithm With Stochastic Gradient Descent
+def logistic_regression(train, test, l_rate, n_epoch):
+	predictions = list()
+	coef = coefficients_sgd(train, l_rate, n_epoch)
+	for row in test:
+		yhat = predict(row, coef)
+		yhat = round(yhat)
+		predictions.append(yhat)
+	return(predictions)
+ 
+# Test the logistic regression algorithm on the diabetes dataset
+seed(1)
+# load and prepare data
+filename = 'Student-University.csv'
+dataset = load_csv(filename)
+for i in range(len(dataset[0])):
+	str_column_to_float(dataset, i)
+# normalize
+minmax = dataset_minmax(dataset)
+normalize_dataset(dataset, minmax)
+# evaluate algorithm
+n_folds = 5
+l_rate = 0.1
+n_epoch = 100
+scores = evaluate_algorithm(dataset, logistic_regression, n_folds, l_rate, n_epoch)
+
+
+
+
+Naive Bayes
+
+with library
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+
+from sklearn import metrics
+from sklearn.metrics import confusion_matrix
+data = pd.read_csv('heart.csv')
+x=data.drop('target',axis=1)
+y=data.target
+x_train,x_test,y_train,y_test = train_test_split(x,y,test_size=0.3,random_state=109)
+from sklearn.naive_bayes import GaussianNB
+
+#Create a Gaussian Classifier
+ml = GaussianNB()
+
+# Train the model using the training sets
+ml.fit(x_train,y_train)
+y_pred=ml.predict(x_test)
+cm = confusion_matrix(y_test,y_pred)
+print('\n'.join([''.join(['{:4}'.format(item) for item in row]) for row in cm]))
+                
+FP = cm.sum(axis=0) - np.diag(cm)
+FN = cm.sum(axis=1) - np.diag(cm)
+TP = np.diag(cm)
+TN = cm.sum() - (FP + FN + TP)
+print('False Positives\n {}'.format(FP))
+print('False Negetives\n {}'.format(FN))
+print('True Positives\n {}'.format(TP))
+print('True Negetives\n {}'.format(TN))
+TPR = TP/(TP+FN)
+print('Sensitivity \n {}'.format(TPR))
+TNR = TN/(TN+FP)
+print('Specificity \n {}'.format(TNR))
+Precision = TP/(TP+FP)
+print('Precision \n {}'.format(Precision))
+Recall = TP/(TP+FN)
+print('Recall \n {}'.format(Recall))
+Acc = (TP+TN)/(TP+TN+FP+FN)
+print('Áccuracy \n{}'.format(Acc))
+Fscore = 2*(Precision*Recall)/(Precision+Recall)
+print('FScore \n{}'.format(Fscore))
+
+without library
+import csv
+import random
+import math
+import numpy as np
+from sklearn.metrics import confusion_matrix
+#from pandas_ml import ConfusionMatrix
+def loadCsv(filename):
+        lines = csv.reader(open(filename, 'r'))
+        dataset = list(lines)
+        for i in range(len(dataset)):
+                dataset[i] = [float(x) for x in dataset[i]]
+        return dataset
+
+def splitData(dataset, sRatio):
+        trainSize = int(len(dataset) * sRatio)
+        trainSet = []
+        copy = list(dataset)
+        while len(trainSet) < trainSize:
+                index = random.randrange(len(copy))
+                trainSet.append(copy.pop(index))
+        return [trainSet, copy]
+
+def ClassData(dataset):
+        classdivision = {}
+        for i in range(len(dataset)):
+                vector = dataset[i]
+                if (vector[-1] not in classdivision):
+                        classdivision[vector[-1]] = []
+                classdivision[vector[-1]].append(vector)
+        print(classdivision)
+        return classdivision
+
+def mean(numbers):
+        return sum(numbers)/float(len(numbers))
+
+def stdev(numbers):
+        avg = mean(numbers)
+        variance = sum([pow(x-avg,2) for x in numbers])/float(len(numbers)-1)
+        return math.sqrt(variance)
+
+def process(dataset):
+        foreveryclass=[]
+        for attribute in zip(*dataset):
+                x = mean(attribute)
+                y = stdev(attribute)
+                foreveryclass.append([x,y])
+        del foreveryclass[-1]
+        return foreveryclass
+
+def summarizeByClass(dataset):
+        divided = ClassData(dataset)
+        #print(separated)
+        ProcessValues = {}  # a dictionary to store mean stdev of all attributes classwise
+        for classValue, instances in divided.items(): #returns a list of key, value pairs for tuples
+                ProcessValues[classValue] = process(instances)
+        #print(ProcessValues)
+        return ProcessValues
+
+def calculateProbability(x, mean, stdev):
+        exponent = math.exp(-(math.pow(x-mean,2)/(2*math.pow(stdev,2))))
+        return (1 / (math.sqrt(2*math.pi) * stdev)) * exponent
+
+def calculateClassProbabilities(ProcessValues, inputVector):
+        probabilities = {}
+        for classValue, classSummaries in ProcessValues.items():
+                probabilities[classValue] = 1
+                for i in range(len(classSummaries)):
+                        mean, stdev = classSum
+                        maries[i]
+                        x = inputVector[i]
+                        probabilities[classValue] *= calculateProbability(x, mean, stdev)
+        #print(probabilities)
+        return probabilities
+
+def predict(ProcessValues, inputVector):
+        probabilities = calculateClassProbabilities(ProcessValues, inputVector)
+        bestLabel, bestProb = None, -1
+        for classValue, probability in probabilities.items():
+                if bestLabel is None or probability > bestProb:
+                        bestProb = probability
+                        bestLabel = classValue
+        return bestLabel
+
+def getPredictions(ProcessValues, testSet):
+        predictions = []
+        y_true = []
+        for i in range(len(testSet)):
+                result = predict(ProcessValues, testSet[i])
+                predictions.append(result)
+        #print(predictions)
+        for i in range(len(testSet)):
+                vector=testSet[i]
+                y_true.append(vector[-1])
+        #print(y_true)
+        return [y_true, predictions]
+
+def getAccuracy(testSet, predictions):
+        correct = 0
+        for i in range(len(testSet)):
+                if testSet[i][-1] == predictions[i]:
+                        correct += 1
+        return (correct/float(len(testSet))) * 100.0
+
+def main():
+        filename = 'data.csv'
+        file = 'Databalancedtest.csv'
+        sRatio = 0.80
+        dataset = loadCsv(filename)
+        trainingSet, testSet = splitData(dataset, sRatio)
+        #print('Split {} rows into train={} and test={} rows'.format(len(dataset), len(trainingSet), len(testSet)))
+        # prepare model
+        ProcessValues = summarizeByClass(trainingSet)
+        # test model
+        y_true, predictions = getPredictions(ProcessValues, testSet)
+        #print('True Classes of test dataset: {}\n'.format(y_true))
+        #print('\nPredicted Classes : {}\n'.format(y_true))
+        cm = confusion_matrix(y_true, predictions)
+        #for i in range(6):
+                #for j in range(6):
+                        #print('{:4}'.format(cm[i][j])),
+                #print
+        print('\n\n Confusion Matrix \n')
+        print('\n'.join([''.join(['{:4}'.format(item) for item in row]) for row in cm]))
+        #confusionmatrix = np.matrix(cm)
+        FP = cm.sum(axis=0) - np.diag(cm)
+        FN = cm.sum(axis=1) - np.diag(cm)
+        TP = np.diag(cm)
+        TN = cm.sum() - (FP + FN + TP)
+        print('False Positives\n {}'.format(FP))
+        print('False Negetives\n {}'.format(FN))
+        print('True Positives\n {}'.format(TP))
+        print('True Negetives\n {}'.format(TN))
+        TPR = TP/(TP+FN)
+        print('Sensitivity \n {}'.format(TPR))
+        TNR = TN/(TN+FP)
+        print('Specificity \n {}'.format(TNR))
+        Precision = TP/(TP+FP)
+        print('Precision \n {}'.format(Precision))
+        Recall = TP/(TP+FN)
+        print('Recall \n {}'.format(Recall))
+        Acc = (TP+TN)/(TP+TN+FP+FN)
+        print('Áccuracy \n{}'.format(Acc))
+        Fscore = 2*(Precision*Recall)/(Precision+Recall)
+        print('FScore \n{}'.format(Fscore))
+        #accuracy = getAccuracy(testSet, predictions)
+        #print('Accuracy: {}%'.format(accuracy))
+
+main()
+
+
+
+SVM
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split # Import train_test_split function
+from sklearn import svm #Import svm model
+from sklearn import metrics #Import scikit-learn metrics module for accuracy calculation
+from sklearn.metrics import confusion_matrix
+
+data = pd.read_csv("heart.csv")
+## The data looks like this
+
+##	age	sex	cp	trestbps	chol	fbs	restecg	thalach	exang	oldpeak	slope	ca	thal	target
+##0	63	1	3	145	233	1	0	150	0	2.3	0	0	1	1
+##1	37	1	2	130	250	0	1	187	0	3.5	0	0	2	1
+##2	41	0	1	130	204	0	0	172	0	1.4	2	0	2	1
+##3	56	1	1	120	236	0	1	178	0	0.8	2	0	2	1
+##4	57	0	0	120	354	0	1	163	1	0.6	2	0	2	1
+
+
+
+#Separate the data -- last column 'target' is removed from the input feature set x
+x = data.drop('target',axis = 1) 
+y = data.target
+
+#split the test set and train set
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.3,random_state=109) # 70% training and 30% test
+
+
+
+#Create a svm Classifier
+ml = svm.SVC(kernel='linear') # Linear Kernel
+
+#Train the model using the training sets
+ml.fit(x_train, y_train)
+
+#Predict the response for test dataset
+y_pred = ml.predict(x_test)
+
+
+# Model Accuracy: how often is the classifier correct?
+#print(ml.score(x_test,y_test))
+cm = confusion_matrix(y_test,y_pred)
+print('\n'.join([''.join(['{:4}'.format(item) for item in row]) for row in cm]))
+                
+FP = cm.sum(axis=0) - np.diag(cm)
+FN = cm.sum(axis=1) - np.diag(cm)
+TP = np.diag(cm)
+TN = cm.sum() - (FP + FN + TP)
+print('False Positives\n {}'.format(FP))
+print('False Negetives\n {}'.format(FN))
+print('True Positives\n {}'.format(TP))
+print('True Negetives\n {}'.format(TN))
+TPR = TP/(TP+FN)
+print('Sensitivity \n {}'.format(TPR))
+TNR = TN/(TN+FP)
+print('Specificity \n {}'.format(TNR))
+Precision = TP/(TP+FP)
+print('Precision \n {}'.format(Precision))
+Recall = TP/(TP+FN)
+print('Recall \n {}'.format(Recall))
+Acc = (TP+TN)/(TP+TN+FP+FN)
+print('Áccuracy \n{}'.format(Acc))
+Fscore = 2*(Precision*Recall)/(Precision+Recall)
+print('FScore \n{}'.format(Fscore))
+
+
+Random Forest
+#Import scikit-learn dataset library
+from sklearn import datasets
+
+#Load dataset
+iris = datasets.load_iris()
+# print the label species(setosa, versicolor,virginica)
+print(iris.target_names)
+
+# print the names of the four features
+print(iris.feature_names)
+# print the iris data (top 5 records)
+print(iris.data[0:5])
+
+# print the iris labels (0:setosa, 1:versicolor, 2:virginica)
+print(iris.target)
+# Creating a DataFrame of given iris dataset.
+import pandas as pd
+data=pd.DataFrame({
+    'sepal length':iris.data[:,0],
+    'sepal width':iris.data[:,1],
+    'petal length':iris.data[:,2],
+    'petal width':iris.data[:,3],
+    'species':iris.target
+})
+data.head()
+# Import train_test_split function
+from sklearn.model_selection import train_test_split
+
+X=data[['sepal length', 'sepal width', 'petal length', 'petal width']]  # Features
+y=data['species']  # Labels
+
+# Split dataset into training set and test set
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3) # 70% training and 30% test
+#Import Random Forest Model
+from sklearn.ensemble import RandomForestClassifier
+
+#Create a Gaussian Classifier
+clf=RandomForestClassifier(n_estimators=100)
+
+#Train the model using the training sets y_pred=clf.predict(X_test)
+clf.fit(X_train,y_train)
+
+y_pred=clf.predict(X_test)
+#Import scikit-learn metrics module for accuracy calculation
+from sklearn import metrics
+# Model Accuracy, how often is the classifier correct?
+print("Accuracy:",metrics.accuracy_score(y_test, y_pred))
+
